@@ -1,0 +1,34 @@
+package pack;
+
+import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import javax.swing.JTextArea;
+
+public class StreamGobbler implements Runnable {
+	private InputStream inputStream;
+	public String consumer;
+	private JTextArea output;
+
+	public StreamGobbler(InputStream inputStream, JTextArea output) {
+		this.inputStream = inputStream;
+		this.output = output;
+	}
+
+	@Override
+	public void run() {
+		try {
+			String temp = "";
+			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+			while ((consumer = reader.readLine()) != null) {
+				temp += consumer;
+				temp += '\n';
+			}
+			output.setText(temp);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}

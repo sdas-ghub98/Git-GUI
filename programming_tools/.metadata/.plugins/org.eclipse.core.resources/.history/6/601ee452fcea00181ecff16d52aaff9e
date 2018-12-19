@@ -1,0 +1,69 @@
+package gitgui;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JComboBox;
+import java.awt.Font;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
+public class GitMerge extends JFrame {
+
+	private JPanel contentPane;
+	private PrintStream printstream;
+	private JFrame frame;
+	private String directory;
+
+	/**
+	 * Create the frame.
+	 */
+	public GitMerge(String directory) {
+		setTitle("Git GUI");
+		try {
+			frame = this;
+			this.directory = directory;
+			printstream = new PrintStream(new FileOutputStream(new File("./src/logs/GitMerge-"+System.currentTimeMillis()+".txt")), true);
+			System.setOut(printstream);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		initialize();
+	}
+
+	private void initialize() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 476, 231);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		JComboBox comboBox = new JComboBox();
+		comboBox.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		comboBox.setBounds(10, 54, 192, 35);
+		contentPane.add(comboBox);
+		
+		JComboBox comboBox_1 = new JComboBox();
+		comboBox_1.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		comboBox_1.setBounds(260, 54, 192, 35);
+		contentPane.add(comboBox_1);
+		
+		JLabel lblTo = new JLabel("to");
+		lblTo.setHorizontalAlignment(SwingConstants.CENTER);
+		lblTo.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblTo.setBounds(205, 67, 45, 13);
+		contentPane.add(lblTo);
+		
+		JLabel lblFromBranch = new JLabel("From branch");
+		lblFromBranch.setBounds(10, 30, 45, 13);
+		contentPane.add(lblFromBranch);
+		frame.setLocationRelativeTo(null);;
+	}
+}

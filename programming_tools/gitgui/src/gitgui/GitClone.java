@@ -1,0 +1,168 @@
+/**
+ * Class Implementing Git clone functionality
+ *
+ * @author Shubhangi
+ * @date 11/11/2018
+ *
+ */
+
+package gitgui;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JTextField;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
+import java.awt.Font;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+public class GitClone extends JFrame {
+
+	private static final long serialVersionUID = -8155549320207665281L; //Serial ID for this JFrame
+	private JPanel contentPane; //Frame body
+	private PrintStream printstream; //PrintStream object; used to direct console output
+	private JFrame frame; //JFrame instance
+	private JTextField textField; //Directory to clone repository into
+	private JTextField textField_1; //Repository URL
+	private String directory; //directory where command needs to be carried out
+
+	/**
+	 * Create the frame.
+	 */
+	public GitClone() {
+		setTitle("Git GUI");
+		try {
+			directory = "";
+			frame = this;
+			printstream = new PrintStream(
+					new FileOutputStream(new File("./src/logs/GitClone-" + System.currentTimeMillis() + ".txt")), true);
+			System.setOut(printstream);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		initialize();
+	}
+
+	//Initializing the JFrame Contents
+	private void initialize() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 518, 295);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		frame.setLocationRelativeTo(null);
+		
+		textField = new JTextField();
+		textField.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		textField.setBounds(65, 49, 261, 29);
+		contentPane.add(textField);
+		textField.setColumns(10);
+		
+		textField_1 = new JTextField();
+		textField_1.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		textField_1.setBounds(65, 132, 261, 29);
+		contentPane.add(textField_1);
+		textField_1.setColumns(10);
+		
+		JLabel lblSpecifyFileDirectory = new JLabel("Specify file directory ");
+		lblSpecifyFileDirectory.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblSpecifyFileDirectory.setBounds(65, 10, 164, 29);
+		contentPane.add(lblSpecifyFileDirectory);
+		
+		//Button to select directory
+		JButton btnBrowse = new JButton("Browse");
+		btnBrowse.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {	
+					JFileChooser chooser = new JFileChooser();
+					if (directory.isEmpty()) {
+						chooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+					}
+					else {
+						chooser.setCurrentDirectory(new File(directory));
+					}
+					chooser.setDialogTitle("Open Directory");
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					chooser.setAcceptAllFileFilterUsed(false);
+					
+					if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+						directory = chooser.getSelectedFile().toString();
+						textField.setText(directory);
+						directory = directory.replace("\\", "\\\\");
+					}
+				} catch (Exception e) {
+					e.printStackTrace(printstream);
+				}
+			}
+		});
+		btnBrowse.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnBrowse.setBounds(376, 47, 81, 29);
+		contentPane.add(btnBrowse);
+		
+		JLabel lblSpecifyUrl = new JLabel("Specify repository url");
+		lblSpecifyUrl.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblSpecifyUrl.setBounds(65, 92, 164, 30);
+		contentPane.add(lblSpecifyUrl);
+		
+		//Button to implement git clone functionality
+		JButton btnClone = new JButton("Clone");
+		btnClone.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if(textField.getText().isEmpty()) {
+					JOptionPane.showMessageDialog(null, "Please enter destination directory", "Git GUI", 1);
+				}
+				else if(textField_1.getText().isEmpty()) {
+					JOptionPane.showMessageDialog(null, "Please specify the repository url to clone from","Git GUI",1);
+				}
+				else {
+					boolean isWindows = System.getProperty("os.name")
+							.toLowerCase().startsWith("windows");
+					try {				
+						ProcessBuilder builder = new ProcessBuilder();
+						builder.directory(new File(directory)); 
+						if (isWindows) {
+							builder.command("cmd", "/c", "git clone " + textField_1.getText());
+						}
+						else {
+							builder.command("sh", "-c", "git clone " + textField_1.getText());
+						}
+						
+						Process process = builder.start();
+						int exitCode = process.waitFor();
+						assert exitCode == 0;
+						JOptionPane.showMessageDialog(null, "Git repository has been cloned", "Git GUI", 1);
+						process.destroy();
+						frame.dispose();
+					} catch (Exception e) {
+						e.printStackTrace(printstream);
+					}
+				}
+			}
+		});
+		btnClone.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnClone.setBounds(125, 185, 104, 29);
+		contentPane.add(btnClone);
+		
+		//Button to cancel operation
+		JButton btnCancel = new JButton("Cancel");
+		btnCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				frame.dispose();
+			}
+		});
+		btnCancel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnCancel.setBounds(272, 184, 104, 30);
+		contentPane.add(btnCancel);
+	}
+}

@@ -1,0 +1,1 @@
+Wrong Your branch is ahead of 'origin/new_branch2' by 1 commit.  (use "git push" to publish your local commits)

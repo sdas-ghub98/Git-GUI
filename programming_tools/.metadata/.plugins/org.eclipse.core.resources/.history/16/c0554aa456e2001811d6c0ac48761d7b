@@ -1,0 +1,26 @@
+package gitgui;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+public class OpenRepoStream implements Runnable {
+	private InputStream ip;
+	
+	public OpenRepoStream(InputStream ip) {
+		super();
+		this.ip = ip;
+	}
+
+	@Override
+	public void run() {
+		try {
+			if(new BufferedReader(new InputStreamReader(ip)).readLine().equals("")) {
+				
+			}
+		} catch (Exception e) {
+		}
+	}
+	
+	
+}

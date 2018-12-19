@@ -1,0 +1,46 @@
+package gitgui;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+
+public class OpenRepoStream implements Runnable {
+	private InputStream ip;
+	private JButton btn;
+	
+	public OpenRepoStream(InputStream ip, JButton btn) {
+		super();
+		this.ip = ip;
+		this.btn = btn;
+		try {
+			PrintStream printstream = new PrintStream(new FileOutputStream(new File("./src/logs/error-"+System.currentTimeMillis()+".txt")), true);
+			System.setOut(printstream);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void run() {
+		try {
+			if(!(new BufferedReader(new InputStreamReader(ip)).readLine().isEmpty())) {
+				JOptionPane.showMessageDialog(null, "Not a Git Repository", "GIT GUI", 0);
+				btn.setEnabled(false);
+			}
+			else {
+				System.out.println("Button should be enabled");
+				btn.setEnabled(true);
+			}
+		} catch (Exception e) {
+			System.out.println(e.getStackTrace());
+		}
+	}
+	
+	
+}

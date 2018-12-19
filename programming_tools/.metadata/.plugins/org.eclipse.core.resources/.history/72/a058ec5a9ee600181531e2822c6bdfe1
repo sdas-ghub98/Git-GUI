@@ -1,0 +1,106 @@
+package gitgui;
+
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.awt.event.ActionEvent;
+import java.awt.Color;
+import java.awt.Font;
+
+public class GitAdd extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JTextField txtSeparateFilesBy;
+	private PrintStream printstream;
+	private JFrame frame;
+	private String add, directory;
+	
+	/**
+	 * Create the frame.
+	 */
+	public GitAdd(String directory) {
+		setTitle("Git GUI");
+		try {
+			frame = this;
+			this.directory = directory;
+			printstream = new PrintStream(new FileOutputStream(new File("./src/logs/GitAdd-"+System.currentTimeMillis()+".txt")), true);
+			System.setOut(printstream);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		initialize();
+	}
+	
+	private void initialize() {
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setBounds(100, 100, 480, 185);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		txtSeparateFilesBy = new JTextField();
+		txtSeparateFilesBy.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtSeparateFilesBy.setText("Separate Files By ;");
+		txtSeparateFilesBy.setForeground(Color.LIGHT_GRAY);
+		txtSeparateFilesBy.setBounds(10, 28, 446, 41);
+		contentPane.add(txtSeparateFilesBy);
+		txtSeparateFilesBy.setColumns(10);
+		
+		JButton btnAdd = new JButton("Add");
+		btnAdd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+			}
+		});
+		btnAdd.setBounds(63, 98, 85, 40);
+		contentPane.add(btnAdd);
+		
+		JButton btnAddAll = new JButton("Add All");
+		btnAddAll.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				boolean isWindows = System.getProperty("os.name")
+						.toLowerCase().startsWith("windows");
+				try {				
+					ProcessBuilder builder = new ProcessBuilder();
+					builder.directory(new File(directory)); 
+					if (isWindows) {
+						builder.command("cmd", "/c", "git add .");
+					}
+					else {
+						builder.command("sh", "-c", "git add .");
+					}
+					
+					Process process = builder.start();
+					int exitCode = process.waitFor();
+					JOptionPane.showMessageDialog(null, "All files added for tracking", "Git GUI", 1);
+					assert exitCode == 0;
+					process.destroy();
+					frame.dispose();
+				} catch (Exception e) {
+					e.printStackTrace(printstream);
+				}
+			}
+		});
+		btnAddAll.setBounds(198, 98, 85, 40);
+		contentPane.add(btnAddAll);
+		
+		JButton btnCancel = new JButton("Cancel");
+		btnCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				frame.dispose();
+			}
+		});
+		btnCancel.setBounds(333, 98, 85, 40);
+		contentPane.add(btnCancel);
+	}
+}

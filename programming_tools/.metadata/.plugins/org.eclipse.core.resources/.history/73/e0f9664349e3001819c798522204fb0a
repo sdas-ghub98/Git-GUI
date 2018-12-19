@@ -1,0 +1,63 @@
+package gitgui;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.JOptionPane;
+
+public class GitStatus implements Runnable{
+	
+	private InputStream ip;
+	private PrintStream printstream;
+	
+	public GitStatus(InputStream ip) {
+		super();
+		this.ip = ip;
+		try {
+			printstream = new PrintStream(new FileOutputStream(new File("./src/logs/GitStatus-"+System.currentTimeMillis()+".txt")), true);
+			System.setOut(printstream);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public void run() {
+		String status = "", temp;
+		BufferedReader reader = new BufferedReader(new InputStreamReader(ip));
+		
+		try {
+			while ((temp = reader.readLine()) != null) {
+				status += temp;
+			}
+			
+			Pattern p = Pattern.compile("nothing to commit, working tree clean");
+			Pattern p1 = Pattern.compile("Changes not staged for commit");
+			Pattern p2 = Pattern.compile("Untracked files");
+			Pattern p3 = Pattern.compile("Changes to be committed");
+			
+			Matcher m = p.matcher(status);
+			if (m.find()) {
+				JOptionPane.showMessageDialog(null, "Nothing to commit, working tree clean", "Git GUI", 1);
+			}
+			
+			Matcher m1 = p1.matcher(status);
+			Matcher m2 = p2.matcher(status);
+			Matcher m3 = p3.matcher(status);
+			if (m1.find() || m2.find() || m3.find()) {
+				JOptionPane.showMessageDialog(null, "Changes present to be staged", "Git GUI", 1);
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace(printstream);
+		}
+	}
+
+}

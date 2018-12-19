@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Git_GUI" basedir="../" default="run">
+	<target name="compile">
+		<javac includeantruntime="false" srcdir="./src" destdir="./Staging"/>
+	</target>
+	<target name="run" depends="compile">
+		<java classname="gitgui.MainFrame">
+			<classpath path="Staging"/>
+		</java>
+	</target>
+</project>

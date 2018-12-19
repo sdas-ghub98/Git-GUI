@@ -1,0 +1,173 @@
+package gitgui;
+
+import java.awt.EventQueue;
+
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.UIManager;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JSeparator;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.util.concurrent.Executors;
+import java.awt.event.ActionEvent;
+import java.awt.Color;
+import javax.swing.JButton;
+import java.awt.Font;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
+public class MainFrame {
+
+	private JFrame frmGitGui;
+	private String directory;
+	private PrintStream printstream;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					MainFrame window = new MainFrame();
+					window.frmGitGui.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public MainFrame() {
+		directory = "";
+		try {
+			printstream = new PrintStream(new FileOutputStream(new File("./src/logs/MainFrame-"+System.currentTimeMillis()+".txt")), true);
+			System.setOut(printstream);
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch(Exception e) {
+			e.printStackTrace(printstream);
+		}
+		initialize();
+	}
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		frmGitGui = new JFrame();
+		frmGitGui.getContentPane().setBackground(Color.WHITE);
+		frmGitGui.setTitle("GIT GUI");
+		frmGitGui.setBounds(100, 100, 528, 463);
+		frmGitGui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmGitGui.getContentPane().setLayout(null);
+		
+		JButton btnStatus = new JButton("Status");
+		btnStatus.setEnabled(false);
+		btnStatus.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				boolean isWindows = System.getProperty("os.name")
+						.toLowerCase().startsWith("windows");
+				
+				try {
+					ProcessBuilder builder = new ProcessBuilder();
+					builder.directory(new File(directory)); 
+					if (isWindows) {
+						builder.command("cmd", "/c", "git status");
+					}
+					else {
+						builder.command("sh", "-c", "git status");
+					}
+					
+					Process process = builder.start();
+					GitStatus gs = new GitStatus(process.getInputStream());
+					Executors.newSingleThreadExecutor().submit(gs);
+					int exitCode = process.waitFor();
+					assert exitCode == 0;
+					process.destroy();
+				} catch (Exception e) {
+					e.printStackTrace(printstream);
+				}
+			}
+		});
+		btnStatus.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnStatus.setBounds(326, 83, 106, 34);
+		frmGitGui.getContentPane().add(btnStatus);
+		
+		JLabel branch_name = new JLabel("Branch Name");
+		branch_name.setHorizontalAlignment(SwingConstants.CENTER);
+		branch_name.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		branch_name.setBounds(282, 20, 197, 26);
+		frmGitGui.getContentPane().add(branch_name);
+		
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.setBorderPainted(false);
+		frmGitGui.setJMenuBar(menuBar);
+		
+		JMenu mnFile = new JMenu("File");
+		menuBar.add(mnFile);
+		
+		JMenuItem mntmOpenRepository = new JMenuItem("Open Repository");
+		mntmOpenRepository.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				boolean isWindows = System.getProperty("os.name")
+						.toLowerCase().startsWith("windows");
+				
+				try {	
+					JFileChooser chooser = new JFileChooser();
+					if (directory.isEmpty()) {
+						chooser.setCurrentDirectory(new File("."));
+					}
+					else {
+						chooser.setCurrentDirectory(new File(directory));
+					}
+					chooser.setDialogTitle("Open Repository");
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					chooser.setAcceptAllFileFilterUsed(false);
+					
+					if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+						directory = chooser.getSelectedFile().toString();
+						directory = directory.replace("\\", "\\\\");
+						
+						ProcessBuilder builder = new ProcessBuilder();
+						builder.directory(new File(directory)); 
+						if (isWindows) {
+							builder.command("cmd", "/c", "git status");
+						}
+						else {
+							builder.command("sh", "-c", "git status");
+						}
+						
+						Process process = builder.start();
+						OpenRepoStream ors = new OpenRepoStream(process.getInputStream(), process.getErrorStream(), btnStatus, branch_name);
+						Executors.newSingleThreadExecutor().submit(ors);
+						int exitCode = process.waitFor();
+						assert exitCode == 0;
+						process.destroy();
+					}
+				} catch (Exception e) {
+					e.printStackTrace(printstream);
+				}
+			}
+		});
+		mnFile.add(mntmOpenRepository);
+		
+		JSeparator separator = new JSeparator();
+		mnFile.add(separator);
+		
+		JMenuItem mntmExit = new JMenuItem("Exit");
+		mntmExit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.exit(JFrame.EXIT_ON_CLOSE);
+			}
+		});
+		mnFile.add(mntmExit);
+	}
+}
